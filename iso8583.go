@@ -13,15 +13,15 @@ func (iso *ISO8583) pack() ([]byte, error) {
 	}
 	bitMapBytes := make([]byte, 8)
 	for _, fd := range iso.FieldsArray {
-		bitMapBytes[fd/8] |= byte(1 << (8 - (uint(fd) % 8)))
+		if fd%8 == 0 && fd != 0 {
+			bitMapBytes[(fd/8)-1] |= byte(1)
+		} else {
+			bitMapBytes[fd/8] |= byte(1 << (8 - (uint(fd) % 8)))
+		}
 	}
 	for key, value := range bitMapBytes {
-		fmt.Printf("byte %d: %08b\n", key,value)
+		fmt.Printf("byte %d: %08b\n", key, value)
 	}
-
-	//for key, value := range bitMapBytes {
-	//	fmt.Println(key, fmt.Sprintf("%08b",value))
-	//}
 	return append(bitMapBytes, b...), nil
 }
 
@@ -66,6 +66,7 @@ func (iso *ISO8583) packBytes() ([]byte, error) {
 		case Type_VarLL:
 			ll := byte(((varLen / 10) << 4) | (varLen % 10))
 			msg = append(msg, ll)
+			fmt.Printf("%x\n",msg)
 		case Type_VarLLL:
 			lllHigh := byte(varLen / 100)
 			lllLow := byte((((varLen % 100) / 10) << 4) | (varLen % 10))
