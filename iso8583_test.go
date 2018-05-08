@@ -1,6 +1,7 @@
 package iso8583SDK
 
 import (
+	"encoding/hex"
 	"fmt"
 	"testing"
 )
@@ -57,5 +58,37 @@ func TestDefaultSale(t *testing.T) {
 		fmt.Println(exp)
 		fmt.Println(ret)
 		t.Error("make bytes error !")
+	}
+	fmt.Println(ret)
+}
+
+func TestBitMap(t *testing.T) {
+	bitmap := []byte{
+		0x70,
+		0x24,
+		0x05,
+		0x80,
+		0x00,
+		0xC0,
+		0x00,
+		0x14,
+	}
+	for i, v := range bitmap {
+		for j := 0; j < 8; j++ {
+			if (v>>(7-uint(j)))&0x01 == 1 {
+				fmt.Println(i*8 + j + 1)
+			}
+		}
+	}
+}
+
+func TestUnpack(t *testing.T) {
+	iso := CreateISO8583()
+	str := "7024058000C0001416541333008902002900000000000000200000000425120012002800363331353030303235343939313532303430303030393900063030303037380006303030303034"
+	b,_:=hex.DecodeString(str)
+	err := iso.unpack(b)
+	if err != nil {
+		t.Error(err)
+		return
 	}
 }

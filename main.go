@@ -8,15 +8,16 @@ import (
 type FormatType int
 
 const (
-	Format_a   FormatType = 1
-	Format_an  FormatType = 2
-	Format_as  FormatType = 3
-	Format_ns  FormatType = 4
-	Format_ans FormatType = 5
-	Format_z   FormatType = 6
-	Format_n   FormatType = 7
-	Format_b   FormatType = 8
-	Format_s   FormatType = 9
+	Format_unknow FormatType = 0
+	Format_a      FormatType = 1
+	Format_an     FormatType = 2
+	Format_as     FormatType = 3
+	Format_ns     FormatType = 4
+	Format_ans    FormatType = 5
+	Format_z      FormatType = 6
+	Format_n      FormatType = 7
+	Format_b      FormatType = 8
+	Format_s      FormatType = 9
 )
 
 type LenType string
@@ -57,6 +58,9 @@ func (iso *ISO8583) AddField(field int, attr Attr, value string) {
 	}
 	if field < 2 || field > 63 {
 		panic("the field must in 1 < x < 64")
+	}
+	if attr.Len <= 0 || attr.LenType == "" || attr.Format == Format_unknow {
+		panic("the attr must fill all para !")
 	}
 	iso.FieldsArray = append(iso.FieldsArray, field)
 	iso.ValueMap[field] = value

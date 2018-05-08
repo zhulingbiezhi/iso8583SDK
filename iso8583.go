@@ -4,9 +4,10 @@ import (
 	"encoding/hex"
 	"fmt"
 	"sort"
+	"strconv"
 )
 
-func (iso *ISO8583) pack() ([]byte, error) {
+func (iso *ISO8583) pack() ([]byte, error) { // the bytes behind messageType  bytes
 	b, err := iso.packBytes()
 	if err != nil {
 		return nil, err
@@ -25,7 +26,70 @@ func (iso *ISO8583) pack() ([]byte, error) {
 	return append(bitMapBytes, b...), nil
 }
 
-func (iso *ISO8583) unpack([]byte) error {
+func (iso *ISO8583) unpack(msg []byte) error { // the bytes behind messageType  bytes
+	respISO := CreateISO8583()
+	bitmap := msg[:8]
+	for i, v := range bitmap {
+		for j := 0; j < 8; j++ {
+			if (v>>(7-uint(j)))&0x01 == 1 {
+				respISO.FieldsArray = append(respISO.FieldsArray, i*8+j+1)
+			}
+		}
+	}
+
+	dataMsg := msg[8:]
+	offset := 0
+	sort.Ints(respISO.FieldsArray)
+	for _, fd := range respISO.FieldsArray {
+		var attr Attr
+		if a, ok := iso.AttrMap[fd]; ok {
+			attr = a
+		} else {
+			attr = defaultAttrMap[fd]
+		}
+
+		var vlen int
+		switch attr.LenType {
+		case Len_Fix:
+			vlen = attr.Len
+		case Len_VarL, Len_VarLL:
+			strL := fmt.Sprintf("%02x", dataMsg[offset])
+			vlen, _ = strconv.Atoi(strL)
+			offset++
+		case Len_VarLLL:
+			strL := fmt.Sprintf("%04x", dataMsg[offset:offset+2])
+			vlen, _ = strconv.Atoi(strL)
+			offset += 2
+		default:
+			fmt.Printf("unknow attr len type %s\n", attr.LenType)
+		}
+
+		switch attr.Format {
+		case Format_a, Format_an, Format_ans:
+			respISO.ValueMap[fd] = string(dataMsg[offset : offset+vlen])
+			offset += vlen
+		case Format_z, Format_n:
+			l := (vlen + 1) / 2
+			v := hex.EncodeToString(dataMsg[offset : offset+l])
+			if vlen%2 != 0 {
+				v = v[1:]
+			}
+			respISO.ValueMap[fd] = v
+			offset += l
+		case Format_b:
+			l := vlen / 8
+			yu := vlen % 8
+			if yu != 0 {
+				l += 1
+			}
+			respISO.ValueMap[fd] = hex.EncodeToString(dataMsg[offset : offset+l])
+			offset += l
+		default:
+			fmt.Printf("not support attr by attr format: %d",attr.Format)
+		}
+
+		fmt.Println("response---key:", fd, "value:", respISO.ValueMap[fd])
+	}
 	return nil
 }
 
@@ -33,7 +97,7 @@ func (iso *ISO8583) packBytes() ([]byte, error) {
 	msg := make([]byte, 0)
 	sort.Ints(iso.FieldsArray)
 	for _, fd := range iso.FieldsArray {
-		fmt.Println("key:", fd, "value:", iso.ValueMap[fd])
+		fmt.Println("request---key:", fd, "value:", iso.ValueMap[fd])
 		var data []byte
 		var varLen int
 		var err error
@@ -46,6 +110,8 @@ func (iso *ISO8583) packBytes() ([]byte, error) {
 			if err != nil {
 				return nil, err
 			}
+		default:
+			return nil, fmt.Errorf("not support value type %s", t)
 		}
 		if data != nil { //处理subField
 			varLen = len(data) + 2 //subField 的tag占2个字节
