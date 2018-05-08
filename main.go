@@ -36,19 +36,38 @@ type Attr struct {
 	Format  FormatType
 }
 
+type header struct {
+	MessageType string
+}
+
 type ISO8583 struct {
+	header
 	bInited     bool
 	FieldsArray []int
 	ValueMap    map[int]interface{}
 	AttrMap     map[int]Attr
 }
 
-func CreateISO8583() *ISO8583 {
+func CreateISO8583(msgType string) *ISO8583 {
 	return &ISO8583{
 		ValueMap: make(map[int]interface{}),
 		AttrMap:  make(map[int]Attr),
 		bInited:  true,
+		header: header{
+			MessageType: msgType,
+		},
 	}
+}
+
+type Config struct {
+	Host       string //后台地址
+	TPDU       string //tpdu
+	EDS        string //eds
+	TerminalId string
+	MerchantId string
+	TMK        string
+	TMKIndex   string
+	TimeOut    int
 }
 
 func (iso *ISO8583) AddField(field int, attr Attr, value string) {

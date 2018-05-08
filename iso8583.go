@@ -27,7 +27,7 @@ func (iso *ISO8583) pack() ([]byte, error) { // the bytes behind messageType  by
 }
 
 func (iso *ISO8583) unpack(msg []byte) error { // the bytes behind messageType  bytes
-	respISO := CreateISO8583()
+	respISO := CreateISO8583("")
 	bitmap := msg[:8]
 	for i, v := range bitmap {
 		for j := 0; j < 8; j++ {
@@ -85,7 +85,7 @@ func (iso *ISO8583) unpack(msg []byte) error { // the bytes behind messageType  
 			respISO.ValueMap[fd] = hex.EncodeToString(dataMsg[offset : offset+l])
 			offset += l
 		default:
-			fmt.Printf("not support attr by attr format: %d",attr.Format)
+			fmt.Printf("not support attr by attr format: %d", attr.Format)
 		}
 
 		fmt.Println("response---key:", fd, "value:", respISO.ValueMap[fd])
