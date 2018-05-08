@@ -5,35 +5,48 @@ import (
 	"testing"
 )
 
-func TestCreateISO8583(t *testing.T) {
-	iso := CreateISO8583()
-	iso.AddField(1, Attr_n, Type_Fix, "123")
-	iso.AddField(2, Attr_n, Type_Fix, "123")
-	iso.AddField(3, Attr_n, Type_Fix, "123")
-	iso.AddField(4, Attr_n, Type_Fix, "123")
-	iso.AddField(60, Attr_n, Type_Fix, "123")
-	iso.AddField(63, Attr_n, Type_Fix, "123")
-	_, err := iso.pack()
-	if err != nil {
-		t.Error(err)
-	}
-}
-
 func TestSale(t *testing.T) {
 	iso := CreateISO8583()
 	//iso.AddField(0, Attr_n, Type_Fix, "0100")
-	iso.AddField(2, Attr_n, Type_VarLL, "5413330089020029")
-	iso.AddField(3, Attr_n, Type_Fix, "000000")
-	iso.AddField(4, Attr_n, Type_Fix, "000000002000")
-	iso.AddField(11, Attr_n, Type_Fix, "000004")
-	iso.AddField(14, Attr_n, Type_Fix, "2512")
-	iso.AddField(22, Attr_n, Type_Fix, "012")
-	iso.AddField(24, Attr_n, Type_Fix, "028")
-	iso.AddField(25, Attr_n, Type_Fix, "00")
-	iso.AddField(41, Attr_ans, Type_Fix, "63150002")
-	iso.AddField(42, Attr_ans, Type_Fix, "549915204000099")
-	iso.AddField(60, Attr_ans, Type_VarLLL, "000078")
-	iso.AddField(62, Attr_ans, Type_VarLLL, "000004")
+	iso.AddField(2, Attr{19, Len_VarLL, Format_n}, "5413330089020029")
+	iso.AddField(3, Attr{6, Len_Fix, Format_n}, "000000")
+	iso.AddField(4, Attr{12, Len_Fix, Format_n}, "000000002000")
+	iso.AddField(11, Attr{6, Len_Fix, Format_n}, "000004")
+	iso.AddField(14, Attr{4, Len_Fix, Format_n}, "2512")
+	iso.AddField(22, Attr{3, Len_Fix, Format_n}, "012")
+	iso.AddField(24, Attr{3, Len_Fix, Format_n}, "028")
+	iso.AddField(25, Attr{2, Len_Fix, Format_n}, "00")
+	iso.AddField(41, Attr{8, Len_Fix, Format_ans}, "63150002")
+	iso.AddField(42, Attr{15, Len_Fix, Format_ans}, "549915204000099")
+	iso.AddField(60, Attr{999, Len_VarLLL, Format_ans}, "000078")
+	iso.AddField(62, Attr{999, Len_VarLLL, Format_ans}, "000004")
+	b, err := iso.pack()
+	if err != nil {
+		t.Error(err)
+	}
+	ret := fmt.Sprintf("%X", b)
+	exp := "7024058000C0001416541333008902002900000000000000200000000425120012002800363331353030303235343939313532303430303030393900063030303037380006303030303034"
+	if ret != exp {
+		fmt.Println(exp)
+		fmt.Println(ret)
+		t.Error("make bytes error !")
+	}
+}
+
+func TestDefaultSale(t *testing.T) {
+	iso := CreateISO8583()
+	iso.AddFieldDefault(2, "5413330089020029")
+	iso.AddFieldDefault(3, "000000")
+	iso.AddFieldDefault(4, "000000002000")
+	iso.AddFieldDefault(11, "000004")
+	iso.AddFieldDefault(14, "2512")
+	iso.AddFieldDefault(22, "012")
+	iso.AddFieldDefault(24, "028")
+	iso.AddFieldDefault(25, "00")
+	iso.AddFieldDefault(41, "63150002")
+	iso.AddFieldDefault(42, "549915204000099")
+	iso.AddFieldDefault(60, "000078")
+	iso.AddFieldDefault(62, "000004")
 	b, err := iso.pack()
 	if err != nil {
 		t.Error(err)

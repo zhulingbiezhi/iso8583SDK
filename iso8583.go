@@ -31,13 +31,8 @@ func (iso *ISO8583) unpack([]byte) error {
 
 func (iso *ISO8583) packBytes() ([]byte, error) {
 	msg := make([]byte, 0)
-	fields := make([]int, 0)
-	for k := range iso.Fields {
-		fields = append(fields, k)
-	}
-	sort.Ints(fields)
-	iso.FieldsArray = fields[:]
-	for _, fd := range fields {
+	sort.Ints(iso.FieldsArray)
+	for _, fd := range iso.FieldsArray {
 		fmt.Println("key:", fd, "value:", iso.ValueMap[fd])
 		var data []byte
 		var varLen int
@@ -55,19 +50,19 @@ func (iso *ISO8583) packBytes() ([]byte, error) {
 		if data != nil { //处理subField
 			varLen = len(data) + 2 //subField 的tag占2个字节
 		}
-		switch iso.LenTypeMap[fd] {
-		case Type_Fix:
+		switch iso.AttrMap[fd].LenType {
+		case Len_Fix:
 			if data != nil {
 				return nil, fmt.Errorf("the sub field is not support Type_Fix")
 			}
-		case Type_VarL:
+		case Len_VarL:
 			l := byte(varLen)
 			msg = append(msg, l)
-		case Type_VarLL:
+		case Len_VarLL:
 			ll := byte(((varLen / 10) << 4) | (varLen % 10))
 			msg = append(msg, ll)
-			fmt.Printf("%x\n",msg)
-		case Type_VarLLL:
+			fmt.Printf("%x\n", msg)
+		case Len_VarLLL:
 			lllHigh := byte(varLen / 100)
 			lllLow := byte((((varLen % 100) / 10) << 4) | (varLen % 10))
 			msg = append(msg, lllHigh, lllLow)
@@ -76,22 +71,22 @@ func (iso *ISO8583) packBytes() ([]byte, error) {
 		}
 		if data == nil {
 			v := iso.ValueMap[fd].(string)
-			switch iso.AttrMap[fd] {
-			case Attr_a, Attr_an, Attr_ans:
+			switch iso.AttrMap[fd].Format {
+			case Format_a, Format_an, Format_ans:
 				msg = append(msg, []byte(v)...)
-			case Attr_z:
+			case Format_z:
 				if (len(v) % 2) != 0 {
 					v = v + "F"
 				}
 				b, _ := hex.DecodeString(v)
 				msg = append(msg, b...)
-			case Attr_n:
+			case Format_n:
 				if (len(v) % 2) != 0 {
 					v = "0" + v
 				}
 				b, _ := hex.DecodeString(v)
 				msg = append(msg, b...)
-			case Attr_b:
+			case Format_b:
 				b, _ := hex.DecodeString(v)
 				msg = append(msg, b...)
 			default:
