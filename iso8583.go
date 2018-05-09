@@ -20,15 +20,18 @@ func (iso *ISO8583) pack() ([]byte, error) { // the bytes behind messageType  by
 			bitMapBytes[fd/8] |= byte(1 << (8 - (uint(fd) % 8)))
 		}
 	}
-	for key, value := range bitMapBytes {
-		fmt.Printf("byte %d: %08b\n", key, value)
-	}
-	return append(bitMapBytes, b...), nil
+	//for key, value := range bitMapBytes {
+	//	fmt.Printf("byte %d: %08b\n", key, value)
+	//}
+	MTI, _ := hex.DecodeString(iso.MessageType)
+	b = append(bitMapBytes, b...)
+	return append(MTI, b...), nil
 }
 
 func (iso *ISO8583) unpack(msg []byte) error { // the bytes behind messageType  bytes
-	respISO := CreateISO8583("")
-	bitmap := msg[:8]
+	msgType := string(msg[:2])
+	respISO := CreateISO8583(msgType)
+	bitmap := msg[2:10]
 	for i, v := range bitmap {
 		for j := 0; j < 8; j++ {
 			if (v>>(7-uint(j)))&0x01 == 1 {
@@ -37,7 +40,7 @@ func (iso *ISO8583) unpack(msg []byte) error { // the bytes behind messageType  
 		}
 	}
 
-	dataMsg := msg[8:]
+	dataMsg := msg[10:]
 	offset := 0
 	sort.Ints(respISO.FieldsArray)
 	for _, fd := range respISO.FieldsArray {

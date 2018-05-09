@@ -112,7 +112,7 @@ func TestTransaction(t *testing.T) {
 		t.Error(err)
 	}
 	r := fmt.Sprintf("%X", b)
-	exp := "7024058000C0001416541333008902002900000000000000200000000425120012002800363331353030303235343939313532303430303030393900063030303037380006303030303034"
+	exp := "02007024058000C0001416541333008902002900000000000000200000000425120012002800363331353030303235343939313532303430303030393900063030303037380006303030303034"
 	if r != exp {
 		fmt.Println(exp)
 		fmt.Println(r)
@@ -122,16 +122,14 @@ func TestTransaction(t *testing.T) {
 	fmt.Println(r)
 
 	key, _ := hex.DecodeString(defaultConfig.TMK)
-	encb := encrypt(b[8:], key)
+	encb := encrypt(b[10:], key)
 	dstMsg := make([]byte, 0)
 	dstMsg = append(dstMsg, 0x00, 0x00) // len
 	tpdu, _ := hex.DecodeString(defaultConfig.TPDU)
 	dstMsg = append(dstMsg, tpdu...)
 	eds, _ := hex.DecodeString(defaultConfig.EDS)
 	dstMsg = append(dstMsg, eds...)
-	MTI, _ := hex.DecodeString(iso.MessageType)
-	dstMsg = append(dstMsg, MTI...)
-	dstMsg = append(dstMsg, b[:8]...)
+	dstMsg = append(dstMsg, b[:10]...)
 	dstMsg = append(dstMsg, encb...)
 	dstMsg[2+5+4] = byte(len(encb) >> 8)
 	dstMsg[2+5+5] = byte(len(encb) & 0x00FF)
@@ -144,12 +142,16 @@ func TestTransaction(t *testing.T) {
 		t.Error(err)
 		return
 	}
-	fmt.Printf("%x", ret)
-	err = iso.unpack(ret[7+2:])
+	fmt.Printf("%x\n", ret)
+	err = iso.unpack(ret[2+5:])
 	if err != nil {
 		t.Error(err)
 		return
 	}
+}
+
+func TestSubField(t *testing.T) {
+
 }
 
 var defaultConfig = Config{}
