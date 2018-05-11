@@ -43,7 +43,7 @@ func parseISO8583FromStruct(v interface{}) (*ISO8583, error) {
 	for i := 0; i < typ.NumField(); i++ {
 		fd := typ.Field(i)
 		vv := val.Field(i)
-		if !isZero(vv){
+		if !isZero(vv) {
 			fmt.Println(fd.Name)
 		}
 		tag := fd.Tag.Get("iso8583")
@@ -80,6 +80,8 @@ func parseISO8583FromStruct(v interface{}) (*ISO8583, error) {
 			for _, v := range vv.MapKeys() {
 				iv = iv + v.String() + vv.MapIndex(v).String()
 			}
+		case reflect.Uintptr, reflect.Complex64, reflect.Complex128, reflect.Array, reflect.Chan, reflect.Func, reflect.Ptr, reflect.Slice, reflect.Struct, reflect.UnsafePointer:
+			fmt.Printf("unsupport type %s for iso8583 !\n", vv.Kind().String())
 		default:
 			iv = vv.String()
 		}
