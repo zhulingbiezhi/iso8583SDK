@@ -36,6 +36,13 @@ type Attr struct {
 	Format  FormatType
 }
 
+func (a Attr) valid() bool {
+	if a.Len > 0 && a.LenType != "" {
+		return true
+	}
+	return false
+}
+
 type header struct {
 	MessageType string
 }
