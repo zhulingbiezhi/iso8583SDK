@@ -16,15 +16,14 @@ func TestStruct(t *testing.T) {
 			"6E": "140KL",
 		},
 	}
-	iso ,err := parseISO8583FromStruct(bea)
+	iso, err := parseISO8583FromStruct(bea)
 	if err != nil {
 		t.Error(err)
 		return
 	}
-	fmt.Printf("%+v\n",iso)
+	fmt.Printf("%+v\n", iso)
 }
 
-
-func TestStructTransaction(t *testing.T){
+func TestStructTransaction(t *testing.T) {
 
 }
