@@ -1,6 +1,9 @@
 package iso8583SDK
 
-import "testing"
+import (
+	"fmt"
+	"testing"
+)
 
 func TestStruct(t *testing.T) {
 	bea := BEA{
@@ -13,5 +16,15 @@ func TestStruct(t *testing.T) {
 			"6E": "140KL",
 		},
 	}
-	parseISO8583FromStruct(bea)
+	iso ,err := parseISO8583FromStruct(bea)
+	if err != nil {
+		t.Error(err)
+		return
+	}
+	fmt.Printf("%+v\n",iso)
+}
+
+
+func TestStructTransaction(t *testing.T){
+
 }
